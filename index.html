@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Weather Dashboard — Ashen Paul</title>
+  <meta name="description" content="A real-time weather dashboard built by Ashen Paul using the OpenWeatherMap API, async/await, and the Fetch API." />
+  <meta name="author" content="Ashen Paul" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <div class="header-left">
+        <span class="logo-mark" aria-hidden="true">AP</span>
+        <div>
+          <p class="header-name">Ashen Paul</p>
+          <p class="header-sub">Weather Dashboard</p>
+        </div>
+      </div>
+      <button class="theme-btn" id="theme-btn" aria-label="Switch to light mode">
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1"  x2="12" y2="3"/>  <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>    <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main id="main-content" tabindex="-1">
+    <div class="container">
+
+      <!-- SEARCH SECTION -->
+      <section class="search-section" aria-labelledby="search-heading">
+        <h1 id="search-heading" class="search-heading">
+          Real-time Weather
+        </h1>
+        <p class="search-sub">Search any city to get live weather data.</p>
+
+        <form id="search-form" class="search-form" novalidate aria-label="Search weather by city name">
+          <div class="search-row">
+            <label for="city-input" class="sr-only">City name</label>
+            <div class="input-wrap">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="search"
+                id="city-input"
+                class="city-input"
+                placeholder="e.g. Mumbai, Chennai, Delhi..."
+                autocomplete="off"
+                spellcheck="false"
+                aria-required="true"
+                aria-describedby="search-err"
+                aria-autocomplete="list"
+                aria-controls="suggestions-list"
+              />
+              <!-- Autocomplete suggestions -->
+              <ul
+                id="suggestions-list"
+                class="suggestions"
+                role="listbox"
+                aria-label="City suggestions"
+                hidden
+              ></ul>
+            </div>
+            <button type="submit" class="btn-search" id="btn-search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Search
+            </button>
+          </div>
+          <span id="search-err" class="search-err" role="alert" aria-live="assertive" hidden></span>
+        </form>
+
+        <!-- Recent searches -->
+        <div class="recent-wrap" id="recent-wrap" hidden>
+          <p class="recent-label" aria-hidden="true">Recent:</p>
+          <div id="recent-list" class="recent-list" role="list" aria-label="Recent searches"></div>
+          <button class="btn-clear-recent" id="btn-clear-recent" aria-label="Clear recent searches">Clear</button>
+        </div>
+      </section>
+
+      <!-- LIVE ANNOUNCE -->
+      <p id="live-announce" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+
+      <!-- LOADING SPINNER -->
+      <div id="loading" class="loading" hidden aria-live="polite" aria-label="Loading weather data">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Fetching weather data...</p>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div id="error-state" class="error-state" role="alert" aria-live="assertive" hidden>
+        <span class="error-icon" aria-hidden="true">⚠</span>
+        <p class="error-title" id="error-title">Something went wrong</p>
+        <p class="error-msg" id="error-msg"></p>
+        <button class="btn-retry" id="btn-retry">Try again</button>
+      </div>
+
+      <!-- ===== WEATHER DISPLAY ===== -->
+      <div id="weather-output" hidden>
+
+        <!-- CURRENT WEATHER CARD -->
+        <section class="current-card" aria-labelledby="current-heading">
+          <div class="current-top">
+            <div>
+              <p class="current-label" aria-hidden="true">// current weather</p>
+              <h2 id="current-heading">
+                <span id="city-name"></span>
+                <span class="country-badge" id="country-code"></span>
+              </h2>
+              <p class="current-coords" id="current-coords"></p>
+              <p class="current-time" id="current-time" aria-live="polite"></p>
+            </div>
+            <div class="weather-icon-wrap" aria-hidden="true">
+              <img id="weather-icon" src="" alt="" width="80" height="80" />
+              <p class="weather-desc" id="weather-desc"></p>
+            </div>
+          </div>
+
+          <!-- MAIN TEMP -->
+          <div class="temp-row">
+            <span class="temp-main" id="temp-main" aria-label="Current temperature"></span>
+            <div class="temp-feels">
+              <span class="temp-feels-val" id="temp-feels"></span>
+              <span class="temp-feels-label">Feels like</span>
+            </div>
+            <div class="temp-range">
+              <span class="temp-high" id="temp-high"></span>
+              <span class="temp-divider" aria-hidden="true">/</span>
+              <span class="temp-low" id="temp-low"></span>
+              <span class="temp-range-label">H/L</span>
+            </div>
+          </div>
+
+          <!-- UNIT TOGGLE -->
+          <div class="unit-toggle" role="group" aria-label="Temperature unit">
+            <button class="unit-btn active" data-unit="metric"   aria-pressed="true">°C</button>
+            <button class="unit-btn"        data-unit="imperial" aria-pressed="false">°F</button>
+          </div>
+        </section>
+
+        <!-- METRICS GRID -->
+        <section class="metrics-grid" aria-labelledby="metrics-heading">
+          <h2 id="metrics-heading" class="sr-only">Weather metrics</h2>
+
+          <article class="metric-card" aria-labelledby="humidity-label">
+            <span class="metric-icon" aria-hidden="true">💧</span>
+            <span class="metric-val" id="humidity"></span>
+            <span class="metric-label" id="humidity-label">Humidity</span>
+            <div class="metric-bar-wrap">
+              <div class="metric-bar">
+                <div class="metric-bar-fill humidity-fill" id="humidity-bar"></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="metric-card" aria-labelledby="wind-label">
+            <span class="metric-icon" aria-hidden="true">💨</span>
+            <span class="metric-val" id="wind-speed"></span>
+            <span class="metric-label" id="wind-label">Wind Speed</span>
+            <span class="metric-sub" id="wind-dir"></span>
+          </article>
+
+          <article class="metric-card" aria-labelledby="pressure-label">
+            <span class="metric-icon" aria-hidden="true">🌡</span>
+            <span class="metric-val" id="pressure"></span>
+            <span class="metric-label" id="pressure-label">Pressure</span>
+            <span class="metric-sub" id="pressure-trend"></span>
+          </article>
+
+          <article class="metric-card" aria-labelledby="visibility-label">
+            <span class="metric-icon" aria-hidden="true">👁</span>
+            <span class="metric-val" id="visibility"></span>
+            <span class="metric-label" id="visibility-label">Visibility</span>
+          </article>
+
+          <article class="metric-card" aria-labelledby="cloud-label">
+            <span class="metric-icon" aria-hidden="true">☁</span>
+            <span class="metric-val" id="cloudiness"></span>
+            <span class="metric-label" id="cloud-label">Cloud Cover</span>
+          </article>
+
+          <article class="metric-card" aria-labelledby="uv-label">
+            <span class="metric-icon" aria-hidden="true">☀</span>
+            <span class="metric-val" id="uv-index">—</span>
+            <span class="metric-label" id="uv-label">UV Index</span>
+            <span class="metric-sub" id="uv-level"></span>
+          </article>
+        </section>
+
+        <!-- SUN TIMES -->
+        <section class="sun-section" aria-labelledby="sun-heading">
+          <h2 id="sun-heading" class="section-title">Sunrise &amp; Sunset</h2>
+          <div class="sun-grid">
+            <div class="sun-item">
+              <span class="sun-icon" aria-hidden="true">🌅</span>
+              <span class="sun-val" id="sunrise"></span>
+              <span class="sun-label">Sunrise</span>
+            </div>
+            <div class="sun-arc" aria-hidden="true">
+              <svg viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 90 Q100 10 190 90" stroke="currentColor" stroke-width="2"
+                      stroke-dasharray="4 4" opacity=".3"/>
+                <circle id="sun-pos" cx="10" cy="90" r="6" fill="var(--accent)"/>
+              </svg>
+            </div>
+            <div class="sun-item">
+              <span class="sun-icon" aria-hidden="true">🌇</span>
+              <span class="sun-val" id="sunset"></span>
+              <span class="sun-label">Sunset</span>
+            </div>
+          </div>
+          <p class="daylight-label">
+            Daylight: <strong id="daylight-hours"></strong>
+          </p>
+        </section>
+
+        <!-- 5-DAY FORECAST -->
+        <section class="forecast-section" aria-labelledby="forecast-heading">
+          <h2 id="forecast-heading" class="section-title">5-Day Forecast</h2>
+          <ul class="forecast-list" id="forecast-list" role="list" aria-label="5-day weather forecast"></ul>
+        </section>
+
+        <!-- RAW JSON PANEL -->
+        <section class="json-section" aria-labelledby="json-heading">
+          <button class="json-toggle" id="json-toggle" aria-expanded="false" aria-controls="json-panel">
+            <span>View raw JSON response</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true" class="chevron">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div id="json-panel" class="json-panel" hidden aria-labelledby="json-heading">
+            <h2 id="json-heading" class="sr-only">Raw API JSON response</h2>
+            <pre id="json-output" class="json-output" tabindex="0" aria-label="Raw JSON data"></pre>
+          </div>
+        </section>
+
+      </div><!-- /weather-output -->
+
+      <!-- DEFAULT / WELCOME STATE -->
+      <div id="welcome-state" class="welcome-state" aria-hidden="false">
+        <span class="welcome-icon" aria-hidden="true">🌤</span>
+        <p class="welcome-title">Search a city to get started</p>
+        <p class="welcome-sub">Try: Mumbai, Delhi, Bengaluru, Chennai, Hyderabad</p>
+        <!-- Quick city buttons -->
+        <div class="quick-cities" role="list" aria-label="Quick city shortcuts">
+          <button class="quick-city" data-city="Mumbai"    role="listitem">Mumbai</button>
+          <button class="quick-city" data-city="Delhi"     role="listitem">Delhi</button>
+          <button class="quick-city" data-city="Bengaluru" role="listitem">Bengaluru</button>
+          <button class="quick-city" data-city="Chennai"   role="listitem">Chennai</button>
+          <button class="quick-city" data-city="Kolkata"   role="listitem">Kolkata</button>
+        </div>
+      </div>
+
+    </div><!-- /container -->
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <p class="footer-copy">
+        &copy; <time datetime="2025">2025</time> Ashen Paul
+        &mdash; Task 4, Async JS &amp; RESTful APIs
+      </p>
+      <p class="footer-api">
+        Data: <a href="https://openweathermap.org" target="_blank" rel="noopener noreferrer"
+                 aria-label="OpenWeatherMap (opens in new tab)">OpenWeatherMap</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
